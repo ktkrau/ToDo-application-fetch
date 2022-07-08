@@ -1,26 +1,104 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { RiCloseCircleLine } from "react-icons/ri";
 
-//include images into your bundle
-import rigoImage from "../../img/rigo-baby.jpg";
-
-//create your first component
 const Home = () => {
+	const [newItem, setNewItem] = useState("");
+	const [todos, setTodos] = useState([]);
+
+	useEffect(() => {
+		getTodos();
+	}, [newItem]);
+
+	const sendTodos = async (result) => {
+		const response = await fetch(
+			"https://assets.breatheco.de/apis/fake/todos/user/ktkrau",
+			{
+				method: "PUT",
+				body: JSON.stringify(result),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
+		const data = await response.json();
+		console.log(data);
+	};
+	const getTodos = async () => {
+		const response = await fetch(
+			"https://assets.breatheco.de/apis/fake/todos/user/ktkrau",
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
+		const data = await response.json();
+		setTodos(data);
+	};
+
+	const deleteItem = (ind) => {
+		const newArray = todos.filter((element, index) => index !== ind);
+		setTodos(newArray);
+		sendTodos(newArray);
+	};
+
+	const addTodo = (e) => {
+		if (newItem === "") {
+			return;
+		}
+		if (e.key === "Enter") {
+			const task = {
+				label: newItem,
+				done: false,
+			};
+			sendTodos([...todos, task]);
+			setNewItem("");
+		}
+	};
 	return (
-		<div className="text-center">
-			<h1 className="text-center mt-5">Hello Rigo!</h1>
-			<p>
-				<img src={rigoImage} />
-			</p>
-			<a href="#" className="btn btn-success">
-				If you see this green button... bootstrap is working...
-			</a>
-			<p>
-				Made by{" "}
-				<a href="http://www.4geeksacademy.com">4Geeks Academy</a>, with
-				love!
-			</p>
-		</div>
-	);
+		<div className="container">
+			<div className="row">
+				<div className="col-4"></div>
+				<div className="col-4 caja-lista">
+					<div className="card-body">
+    <h5 className="card-title m-auto">MY LIST</h5>
+    <input 
+					id="formGroupExampleInput" type="text"
+					className="form-control"
+					placeholder="Add a item..."
+					onChange={(e) => {
+						setNewItem(e.target.value);
+					}}
+					value={newItem}
+					onKeyPress={(e) => addTodo(e)}
+				/>
+				<ul>
+					{Array.isArray(todos) &&
+						todos !== undefined &&
+						todos?.map((task, index) => {
+							return (
+								<li className="items" key={index}>
+									{task.label}
+									<button
+										className="delete-item"
+										onClick={() => {
+											deleteItem(index);
+										}}>
+											<div className="boton">
+										<RiCloseCircleLine/></div>
+									</button>
+								</li>
+							);
+						})}
+				</ul>
+  </div>
+				</div>
+				<div className="col-4"></div>
+		</div></div>
+	)
+
+		
 };
 
 export default Home;
